@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/material.dart';
@@ -16,7 +17,10 @@ class AddDataPage extends StatefulWidget {
 
 class _AddDataPageState extends State<AddDataPage> {
   final formKey = GlobalKey<FormState>();
+  TextEditingController _nikController = TextEditingController();
   TextEditingController _nameController = TextEditingController();
+  TextEditingController _phoneController = TextEditingController();
+  TextEditingController _genderController = TextEditingController();
   TextEditingController _dateController = TextEditingController();
   TextEditingController _locationController = TextEditingController();
   File _file = File('');
@@ -26,10 +30,13 @@ class _AddDataPageState extends State<AddDataPage> {
       var request = http.MultipartRequest(
         'POST',
         Uri.parse(
-            'http://192.168.100.129:8000/api/api-datadiri'), // Endpoint API Laravel Anda
+            'http://192.168.37.84:8000/api/api-datadiri'), // Endpoint API Laravel Anda
       );
 
+      request.fields['nik'] = _nikController.text;
       request.fields['name'] = _nameController.text;
+      request.fields['phone'] = _phoneController.text;
+      request.fields['gender'] = _genderController.text == "L" ? "L" : "P";
       request.fields['birth'] = _dateController.text;
       request.fields['location'] = _locationController.text;
 
@@ -70,7 +77,10 @@ class _AddDataPageState extends State<AddDataPage> {
 
   @override
   void dispose() {
+    _nikController.dispose();
     _nameController.dispose();
+    _phoneController.dispose();
+    _genderController.dispose();
     _dateController.dispose();
     _locationController.dispose();
     super.dispose();
@@ -94,7 +104,7 @@ class _AddDataPageState extends State<AddDataPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tambah Data'),
+        title: const Text('Form Entry'),
       ),
       body: SafeArea(
         child: Form(
@@ -111,7 +121,8 @@ class _AddDataPageState extends State<AddDataPage> {
                     margin: EdgeInsets.all(20),
                     width: 150,
                     height: 150,
-                    decoration: BoxDecoration(shape: BoxShape.circle),
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle, color: Colors.grey),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(100),
                       child: _file.path == ''
@@ -125,6 +136,28 @@ class _AddDataPageState extends State<AddDataPage> {
                               fit: BoxFit.cover,
                             ),
                     ),
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.all(20),
+                  child: TextFormField(
+                    controller: _nikController,
+                    decoration: InputDecoration(
+                      hintText: "NIK",
+                      labelText: "NIK",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                    ],
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "NIK tidak boleh kosong";
+                      }
+                      return null;
+                    },
                   ),
                 ),
                 Container(
@@ -144,6 +177,68 @@ class _AddDataPageState extends State<AddDataPage> {
                       }
                       return null;
                     },
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.all(20),
+                  child: TextFormField(
+                    controller: _phoneController,
+                    decoration: InputDecoration(
+                      hintText: "No. HP",
+                      labelText: "No. HP",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]')),
+                    ],
+                    validator: (value) {
+                      if (value!.isEmpty) {
+                        return "No HP tidak boleh kosong";
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey),
+                      borderRadius: BorderRadius.circular(10)),
+                  margin: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Jenis Kelamin",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      RadioListTile(
+                        title: Text('L'),
+                        value: 'L',
+                        groupValue: _genderController.text,
+                        onChanged: (value) {
+                          setState(() {
+                            _genderController.text = value!;
+                          });
+                        },
+                      ),
+                      RadioListTile(
+                        title: Text('P'),
+                        value: 'P',
+                        groupValue: _genderController.text,
+                        onChanged: (value) {
+                          setState(() {
+                            _genderController.text = value!;
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 Container(
@@ -171,7 +266,7 @@ class _AddDataPageState extends State<AddDataPage> {
                         firstDate: DateTime(1900),
                         lastDate: DateTime(2100),
                       );
-          
+
                       if (pickedDate != null) {
                         setState(() {
                           _dateController.text =
@@ -224,7 +319,7 @@ class _AddDataPageState extends State<AddDataPage> {
                               : 'Data gagal disimpan'),
                         );
                         ScaffoldMessenger.of(context).showSnackBar(snackBar);
-          
+
                         if (value) {
                           Navigator.of(context).pop(true);
                         }
@@ -239,7 +334,7 @@ class _AddDataPageState extends State<AddDataPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
-                      "Simpan Data",
+                      "Submit",
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 18,
